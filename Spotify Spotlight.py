@@ -34,7 +34,7 @@ def top_ten_songs(df):
 
 def bottom_ten_songs(df):
     bottom = []
-
+    return None
 
 if __name__ == '__main__':
     file_name = 'spotify_data.json'
