@@ -32,12 +32,12 @@ def load_spotify_data(filename):
 def top_ten_songs(df):
     top = []
 
-
+def bottom_ten_songs(df):
+    bottom = []
+    return None
 
 if __name__ == '__main__':
     file_name = 'spotify_data.json'
 
     # 1. load the data
     spotify_df = load_spotify_data(file_name)
-
-hello
