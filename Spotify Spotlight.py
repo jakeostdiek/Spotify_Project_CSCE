@@ -28,13 +28,38 @@ def load_spotify_data(filename):
 
     return df
 
+def max_heap_creation(df, sort_factor):
+    #create a max heap based on the criterion set by user (minutes, entries, etc.)
+    pass
+
+def min_heap_creation(df, sort_factor):
+    #create a min heap based on the criterion set by user (minutes, entries, etc.)
+    pass
+
 #return the top ten songs
 def top_ten_songs(df):
     top = []
+    #use a max heap to sort the songs by most entries in the dataframe
+    #remove the root (top song) 10 times and then songs in top list are the top 10 songs
+    pass
 
 def bottom_ten_songs(df):
     bottom = []
-    return None
+    #use a min heap to sort the songs by least entries in dataframe
+    #remove the root (bottom song) 10 times and then songs in that list are the bottom 10
+    pass
+
+def search_artist(df):
+    #data structure???
+    #search for an artist and count entries OR minutes listened to return
+    pass
+
+def top_5_artist_month(df, month):
+    #max heap??
+    #user passes in month they want to know their top artists for
+    #filters the
+    pass
+
 
 if __name__ == '__main__':
     file_name = 'spotify_data.json'
