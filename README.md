@@ -76,9 +76,9 @@ This program gives users a way to look into their Spotify listening history in a
 ## Algorithm Deep Dive:
 - Algorithm explored: Heaps
 - Explain behavior and tradeoffs:
-  - skdl
+  - A heap is a complete binary tree stored as an array. A key tradeoff is that heaps don't keep elements fully sorted which makes them faster than full sorting when we only need a few of the top or bottom values.
 - Connect heaps directly to how our system uses it:
-  - sdlkjf
+  - We connected heaps into our system in order to keep track of most or least listened. Explained further in next question.
 - Where heaps are in our system:
   - We use heaps in all of our top/bottom functions. So, to find top 5 songs, top 5 artists, and bottom 5 songs each for a given month.
 - Why heaps fit our problem:
@@ -124,7 +124,38 @@ This program gives users a way to look into their Spotify listening history in a
    - Data structure/algorithm: Pandas DataFrame grouping/aggregation operations
 
 ## Compare Two Approaches:
-- 
+- Feature chosen for comparison: Top 5 Songs by Month ranking system
+  - This feature takes a user-selected month and sort criterion and returns the 5 highest-ranked songs. Our current code solves this using a manually built max heap.
+  - Approach 1: Full sort using Python's sorted()
+    - How it works: The simplest alternative to what we did is to convert the song dictionary into a list of song/value pairs, sort the entire list using Python's sorted() function, and then slice the first 5 items.
+    - Tradeoffs: This approach uses Timsort which runs in O(n log(n)) time. The main issue is that is sorts all n songs in the dataset, even though we only are looking for 5 songs total. The extra work spent sorting songs that we do not need makes this approach less efficient as the dataset gets larger, which is a big part of this project.
+  - Approach 2: Heapq library with nlargest()
+    - How it works: Python's heapq module includes a function, nlargest(), which takes k as an argument, essentially saying "find the top k items". It stores a heap of size k with the largest values, and whenever a value is larger than the heap's minimum, the root, it replaces the root. This way the full dataset does not get stored or sorted.
+    - Tradeoffs: This approach runs in O(n log(k)) time, where k would be 5. This simplifies down to just O(n) time which matches our manually built heap's efficiency without needing all of the extra functions we have written.
+  - Performance Comparison:
+    - Our manually built max heap runs O(n) overall, O(n) to insert the songs one by one, and O(log n) per pop, which simplifies down to O(n). The sorted() approach runs in O(n log(n)) because it full sorts all songs, and nlargest() from heapq runs in O(n log(k)) which simplifies to O(n). In the end, our manually built system matches the performance of nlargest().
+    - In terms of implementation, sorted() is by far the simplest, simply inputted the data and returning the top 5 in very few lines of code. Using heapq and nlargest() is nearly as easy, requiring similar length of code but adding in an import line. Our manually built heap is the most complex, spanning four functions and requiring understanding of heap insertion, sift-down, and sift-up operations.
+  - Final Choice and Justification:
+    - For the purposes of this project, our manually built heap is the right choice for our goal of testing and showing our understanding of how heaps work. Writing a heap from scratch forced us to implement and understand sifting during insertion and sifting after deletion. These operations are what give heaps their efficiency.
+    - That being said, as datasets grow, or if we wanted to get lifetime information, the heapq module and nlargest() function would be the better choice. It retains the same O(n) time complexity as our manually built heap and it would be far easier to read and maintain.
 
 ## Testing & System Robustness:
-- 
+- Normal Cases:
+  - Entering a valid month like 'January' or artist like 'Mac Miller' successfully returns a ranked list or number of entries.
+- Edge Cases:
+  - If a month has very few entries. For example, if a month has fewer than 5 songs, our top_5_songs handles this pop_max_heap would return None and we check 'if song' before appending.
+  - Searching for an artist with only one entry is valid.
+- Invalid Inputs:
+  - The menu handles these well. Entering an incorrect month will prompt the user to anter it again, and entering something other than 'entries' or 'minutes' will do the same.
+  - Entering an artist name incorrectly is handled the same way as entering an artist that is not present in the dictionary. The dictionary will return None and print 'Artist not found.'
+- Unusual/Extreme Inputs:
+  - Entering an artist's name with different capitalization is handled due to our artist_dict storing the names as .lower(), and our search_artist calls .lower() as well.
+- Scenario where the system performs poorly:
+  - If a user were to enter a month, where no songs exist in the data (either no songs listened or only podcasts listened), the heap will be built on an empty dictionary and return an empty list. Due to that, the output would only say "No data found", which is correct, but is not very helpful. For improvement we could offer insight to the user by outputting why no data was found.
+- One Limitation:
+  - The system requires the user to know the exact artist name as it shows up in Spotify's system. If someone wants to search for 'Tyler the Creator", instead of the correct 'Tyler, the Creator', the artist won't be found.
+- What we learned:
+  - The most important piece we learned is having strong input validation. Offering examples in the input text and prompting a second time if invalid inputs are given. Working around these issues with try/except blocks in our loops solves this with great ease.
+  - There is not much opportunity for guidance when it comes to inputting valid artist names. Again, we did our best by using .lower() and .strip(), but mispelling an artist name is our of our control and up to the user inputting the names.
+  - Lastly, our manual heap implementation reinforced our knowledge of how heaps work. When initially concerned with there not being enough data for a certain month, we call, for example, pop_min_heap which would return None if the heap is empty. The function catches this so that it doesn't break completely.
+  - 

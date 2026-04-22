@@ -7,7 +7,6 @@ Using Personal Spotify data from the past year to extract insights into my liste
 '''
 
 import pandas as pd
-import time
 
 #load the data
 def load_spotify_data(filename):
@@ -49,15 +48,24 @@ def print_clean(results, title):
         value, item = results[i]
         print(f"{i+1}. {item} - {value}")
 
+
 def dictionary_songs(df, sort_by):
+    # combine with 'track' and 'artist', checking to make sure not null
+    df = df[df['track'].notna() & df['artist'].notna()]
+
+    #  create a new column adding them into one string
+    df = df.copy()
+    df['track_artist'] = df['track'] + " by " + df['artist']
+
     if sort_by == 'minutes':
         #group by track, add up minutes, and turn it into dictionary
-        return df.groupby('track')['minutes_played'].sum().to_dict()
+        return df.groupby('track_artist')['minutes_played'].sum().to_dict()
     elif sort_by == 'entries':
         #count how many times track appears and turn into dictionary
-        return df['track'].value_counts().to_dict()
+        return df['track_artist'].value_counts().to_dict()
     else:
         return {}
+
 
 def dictionary_artists(df, sort_by):
     if sort_by == 'minutes':
@@ -384,7 +392,6 @@ def overall_summary(df):
 def main_menu(df):
     # display an interactive menu for user
     while True:
-        time.sleep(4)
         print("\n" + "+++++++++++++++++++++++++")
         print("Specialty Spotify Stats")
         print("+++++++++++++++++++++++++")
@@ -417,7 +424,7 @@ def main_menu(df):
             print(f"\nFinding top 5 songs for {user_month}...")
             results = top_5_songs(df, month=num_month, criterion=sort_method)
             print_clean(results, f"Top 5 songs in {user_month} by {sort_method}:")
-            continue
+
 
         elif option == "2":
             while True:
@@ -437,7 +444,7 @@ def main_menu(df):
             print(f"\nFinding bottom 5 songs for {user_month}...")
             results = bottom_5_songs(df, month=num_month, criterion=sort_method)
             print_clean(results, "Bottom 5 songs:")
-            continue
+
 
         elif option == "3":
             artist = input("Enter the full artist name (e.g., Mac Miller): ")
@@ -449,7 +456,7 @@ def main_menu(df):
                 print(f"{artist} found! Summary:")
                 print(f"Total Plays: {result['total_entries']}")
                 print(f"Total Minutes: {result['total_minutes']:.2f}")
-            continue
+
 
         elif option == "4":
             while True:
@@ -469,7 +476,7 @@ def main_menu(df):
             print(f"\nFinding top 5 artists for {user_month}...")
             results = top_5_artist_month(df, month=num_month, criterion=sort_method)
             print_clean(results, f"Top 5 artists in {user_month}:")
-            continue
+
 
         elif option == "5":
             while True:
@@ -483,12 +490,12 @@ def main_menu(df):
                     print(f"{first_artist} or {second_artist} or both were not found. Please try again.")
                     continue
             print()
-            continue
+
 
         elif option == "6":
             result = overall_summary(df)
             print(result)
-            continue
+
 
         elif option == "7":
             print("\nExiting...")
@@ -498,16 +505,20 @@ def main_menu(df):
             print("\nInvalid input. Please try again.")
             continue
 
+        if option in ["1", "2", "3", "4", "5", "6"]:
+            input("\nPress Enter to continue...")
+
 
 if __name__ == '__main__':
     files = [
-        'Streaming_History_Audio_2026.json']
+        'Streaming_History_Audio_2025.json',
+        'Streaming_History_Audio_2025_1.json',
+        'Streaming_History_Audio_2025_2.json',]
 
     # 1. load the data
     print("Loading 2025 data...")
     spotify_df = load_spotify_data(files)
     artist_dict = build_artist_dict(spotify_df)
-    print(artist_dict)
 
     # 2. open menu
     main_menu(spotify_df)
