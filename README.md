@@ -124,20 +124,20 @@ This program gives users a way to look into their Spotify listening history in a
    - Data structure/algorithm: Pandas DataFrame grouping/aggregation operations
 
 ## Compare Two Approaches:
-- Feature chosen for comparison: Top 5 Songs by Month ranking system
-  - This feature takes a user-selected month and sort criterion and returns the 5 highest-ranked songs. Our current code solves this using a manually built max heap.
+- Feature chosen for comparison: Bottom 5 Songs by Month compared to Top 5 Songs by Month ranking system
+  - This feature takes a user-selected month and sort criterion and returns the 5 lowest- or highest-ranked songs. The bottom 5 songs by month uses Python's sorted() and top 5 songs by month solves this using a manually built max heap.
   - Approach 1: Full sort using Python's sorted()
     - How it works: The simplest alternative to what we did is to convert the song dictionary into a list of song/value pairs, sort the entire list using Python's sorted() function, and then slice the first 5 items.
     - Tradeoffs: This approach uses Timsort which runs in O(n log(n)) time. The main issue is that is sorts all n songs in the dataset, even though we only are looking for 5 songs total. The extra work spent sorting songs that we do not need makes this approach less efficient as the dataset gets larger, which is a big part of this project.
-  - Approach 2: Heapq library with nlargest()
-    - How it works: Python's heapq module includes a function, nlargest(), which takes k as an argument, essentially saying "find the top k items". It stores a heap of size k with the largest values, and whenever a value is larger than the heap's minimum, the root, it replaces the root. This way the full dataset does not get stored or sorted.
-    - Tradeoffs: This approach runs in O(n log(k)) time, where k would be 5. This simplifies down to just O(n) time which matches our manually built heap's efficiency without needing all of the extra functions we have written.
+  - Approach 2: Manually created heap with pop function
+    - How it works: Our created heap was explained above, but essentially builds a heap of our data and then pops the top 5 values to get top 5 songs or artists. Building the heap takes O(n) time, while popping the top 5 takes O(log(k)) time with k being 5. Since these operations happen separately, their time complexity is added together. So the overall time complexity simplifies down to O(n).
+    - Tradeoffs: While building the heap takes significant time complexity, the popping process to obtain the top 5 songs or artists saves significant time compared to sorting the entire list front to back.
   - Performance Comparison:
-    - Our manually built max heap runs O(n) overall, O(n) to insert the songs one by one, and O(log n) per pop, which simplifies down to O(n). The sorted() approach runs in O(n log(n)) because it full sorts all songs, and nlargest() from heapq runs in O(n log(k)) which simplifies to O(n). In the end, our manually built system matches the performance of nlargest().
-    - In terms of implementation, sorted() is by far the simplest, simply inputted the data and returning the top 5 in very few lines of code. Using heapq and nlargest() is nearly as easy, requiring similar length of code but adding in an import line. Our manually built heap is the most complex, spanning four functions and requiring understanding of heap insertion, sift-down, and sift-up operations.
+    - Our manually built max heap runs O(n) overall, O(n) to insert the songs one by one, and O(log n) per pop, which simplifies down to O(n). The sorted() approach runs in O(n log(n)) because it full sorts all songs. In the end, our manually built system performs better than fully sorting the entire data.
+    - In terms of implementation, sorted() is by far the simplest, simply inputted the data and returning the top 5 in very few lines of code. Our manually built heap is more complex, spanning four functions and requiring understanding of heap insertion, sift-down, and sift-up operations. However, we used this method to demonstrate full understanding of heaps. You can also use heapq() and nlargest() in Python to obtain the same results with less complex code.
   - Final Choice and Justification:
     - For the purposes of this project, our manually built heap is the right choice for our goal of testing and showing our understanding of how heaps work. Writing a heap from scratch forced us to implement and understand sifting during insertion and sifting after deletion. These operations are what give heaps their efficiency.
-    - That being said, as datasets grow, or if we wanted to get lifetime information, the heapq module and nlargest() function would be the better choice. It retains the same O(n) time complexity as our manually built heap and it would be far easier to read and maintain.
+    - That being said, as datasets grow, or if we wanted to get lifetime information, the heapq module and nlargest() function would be the better choice. It retains the same O(n) time complexity as our manually built heap, and it would be far easier to read and maintain.
 
 ## Testing & System Robustness:
 - Normal Cases:

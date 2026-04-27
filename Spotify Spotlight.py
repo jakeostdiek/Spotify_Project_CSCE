@@ -1,9 +1,6 @@
 '''
 Using Personal Spotify data from the past year to extract insights into my listening habits.
-
-1. JSON file from spotify to be read in
-2. Separate data into duplicated dataframes depending on k insight
-3. Sort for most/least listened
+Names: Cassie Nesheim and Jake Ostdiek
 '''
 
 import pandas as pd
@@ -251,22 +248,17 @@ def top_5_songs(df, month, criterion):
 
 def bottom_5_songs(df, month, criterion):
     bottom = []
-    #use a min heap to sort the songs by least entries in dataframe
-    #remove the root (bottom song) 10 times and then songs in that list are the bottom 10
-
     # filter by month
     df_month = df[df['month'] == month]
 
-    # create min heap with 'entries'
-    min_heap = min_heap_creation(df_month, sort_by='track', criterion=criterion)
+    # create dictionary {track: value} based on chosen criterion
+    song_data = dictionary_songs(df_month, criterion)
 
-    # remove the root 5 times
-    for i in range(5):
-        song = pop_min_heap(min_heap)
-        if song:
-            bottom.append(song)
+    #sorts the data by values in the dictionary lowest to highest (lambda x: x[1] just retrieves the value for each song)
+    sorted_songs = sorted(song_data.items(), key=lambda x: x[1])
 
-    return bottom
+    #returns the first 5 songs (first 5 = the lowest 5 values)
+    return sorted_songs[:5]
 
 def search_artist(df, artist_name, artist_dict=None):
    #use the artist dictionary created to find artist and return values
