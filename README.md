@@ -1,7 +1,7 @@
 # Spotify Spotlight: CSCE 311 Final Project
 
 ## Project Overview:
-This program gives users a way to look into their Spotify listening history in a interactive and personalized way than ever before.
+This program gives users a way to look into their Spotify listening history in a more interactive and personalized way than ever before.
 
 ## Dataset:
 - Our dataset: downloaded listening history from Spotify.com. Personalized per user.
@@ -51,7 +51,7 @@ This program gives users a way to look into their Spotify listening history in a
      - Creating an artist dictionary so that each artist has a total number of entries and minutes in the data that can be easily found (using the build_artist_dict)
    - Why appropriate:
      - Dictionaries provide a time complexity of O(1) making them good for quick access when retrieving values before ranking operations.
-     - One limitation of the artist_dict that is created is that it requires a preprocessing step to create this dictionary. However, once created the lookup time of artists is O(1) which is much faster than using the built in Pandas DataFrame features to find an artist, which takes O(n). 
+     - One limitation of the artist_dict that is created is that it requires a preprocessing step to create this dictionary. However, once created the lookup time of artists is O(1) which is much faster than using the built-in Pandas DataFrame features to find an artist, which takes O(n). 
 2. Heaps
    - Why used:
      - Heaps support efficient ranking operations by constantly updating so that the root node always contains either the largest or smallest value.
@@ -146,16 +146,15 @@ This program gives users a way to look into their Spotify listening history in a
   - If a month has very few entries. For example, if a month has fewer than 5 songs, our top_5_songs handles this pop_max_heap would return None and we check 'if song' before appending.
   - Searching for an artist with only one entry is valid.
 - Invalid Inputs:
-  - The menu handles these well. Entering an incorrect month will prompt the user to anter it again, and entering something other than 'entries' or 'minutes' will do the same.
+  - The menu handles these well. Entering an incorrect month will prompt the user to enter it again, and entering something other than 'entries' or 'minutes' will do the same.
   - Entering an artist name incorrectly is handled the same way as entering an artist that is not present in the dictionary. The dictionary will return None and print 'Artist not found.'
 - Unusual/Extreme Inputs:
   - Entering an artist's name with different capitalization is handled due to our artist_dict storing the names as .lower(), and our search_artist calls .lower() as well.
 - Scenario where the system performs poorly:
-  - If a user were to enter a month, where no songs exist in the data (either no songs listened or only podcasts listened), the heap will be built on an empty dictionary and return an empty list. Due to that, the output would only say "No data found", which is correct, but is not very helpful. For improvement we could offer insight to the user by outputting why no data was found.
+  - If a user were to enter a month, where no songs exist in the data (either no songs listened or only podcasts listened), the heap will be built on an empty dictionary and return an empty list. Due to that, the output would only say "No data found", which is correct, but is not very helpful. For improvement, we could offer insight to the user by outputting why no data was found.
 - One Limitation:
   - The system requires the user to know the exact artist name as it shows up in Spotify's system. If someone wants to search for 'Tyler the Creator", instead of the correct 'Tyler, the Creator', the artist won't be found.
 - What we learned:
   - The most important piece we learned is having strong input validation. Offering examples in the input text and prompting a second time if invalid inputs are given. Working around these issues with try/except blocks in our loops solves this with great ease.
-  - There is not much opportunity for guidance when it comes to inputting valid artist names. Again, we did our best by using .lower() and .strip(), but mispelling an artist name is our of our control and up to the user inputting the names.
-  - Lastly, our manual heap implementation reinforced our knowledge of how heaps work. When initially concerned with there not being enough data for a certain month, we call, for example, pop_min_heap which would return None if the heap is empty. The function catches this so that it doesn't break completely.
-  - 
+  - There is not much opportunity for guidance when it comes to inputting valid artist names. Again, we did our best by using .lower() and .strip(), but misspelling an artist name is out of our control and up to the user inputting the names.
+  - Lastly, our manual heap implementation reinforced our knowledge of how heaps work. When initially concerned with there not being enough data for a certain month we call, for example, pop_min_heap which would return None if the heap is empty. The function catches this so that it doesn't break completely.

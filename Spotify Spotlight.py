@@ -1,5 +1,5 @@
 '''
-Using Personal Spotify data from the past year to extract insights into my listening habits.
+Using Personal Spotify data from the past year to extract insights into listening habits.
 Names: Cassie Nesheim and Jake Ostdiek
 '''
 
@@ -10,11 +10,12 @@ def load_spotify_data(filename):
     #read the json file into a dataframe
     dataframes = []
 
+   #creates a dataframe for each json file and adds it to the list of dataframes
     for file in filename:
         df = pd.read_json(file)
         dataframes.append(df)
 
-    #ignore index so the original indices are not kept
+    #combine all dataframes into one, ignore index so the original indices are not kept
     combined_df = pd.concat(dataframes, ignore_index=True)
 
     # 1. convert timestamp into column of datetime objects
@@ -32,10 +33,12 @@ def load_spotify_data(filename):
         'master_metadata_album_name': 'album',
     })
 
+    #only drops rows that exactly match - ensures no overlapping data
     renamed = renamed.drop_duplicates()
 
     return renamed
 
+#prints the results of top __ in a nice way
 def print_clean(results, title):
     print("\n" + title)
     print("-------------")
@@ -45,9 +48,9 @@ def print_clean(results, title):
         value, item = results[i]
         print(f"{i+1}. {item} - {value}")
 
-
+#creates a dictionary of songs based on user sort criteria
 def dictionary_songs(df, sort_by):
-    # combine with 'track' and 'artist', checking to make sure not null
+    # combine 'track' and 'artist', checking to make sure not null
     df = df[df['track'].notna() & df['artist'].notna()]
 
     #  create a new column adding them into one string
@@ -63,7 +66,7 @@ def dictionary_songs(df, sort_by):
     else:
         return {}
 
-
+#creates dictionary of artists based on user sort criteria
 def dictionary_artists(df, sort_by):
     if sort_by == 'minutes':
         return df.groupby('artist')['minutes_played'].sum().to_dict()
@@ -72,19 +75,20 @@ def dictionary_artists(df, sort_by):
     else:
         return {}
 
+#builds an artist dictionary with entries and minutes (used at beginning of program) for efficient sorting
 def build_artist_dict(df):
     artist_dict = {}
 
     artist_grouped_df = df.groupby('artist')
-
+    #for each artist, adds an entry with name, entries, and minutes
     for artist, group in artist_grouped_df:
         artist_dict[artist.lower()] = {
             'total_entries': len(group),
             'total_minutes': group['minutes_played'].sum(),
         }
-
     return artist_dict
 
+#creates a map for months to use later on
 def get_month(month):
     user_month = month.lower().strip()
     months = {
@@ -95,11 +99,11 @@ def get_month(month):
 
     return month
 
-#approved by instructor to use this as our sorting algorithm
 def max_heap_creation(df, sort_by, criterion):
     #create a max heap based on the criterion set by user (minutes, entries, etc.)
     heap = []
 
+    #uses our dictionary functions above to get dictionaries for track or artist
     if sort_by == 'artist':
         song_data = dictionary_artists(df, criterion)
     elif sort_by == 'track':
@@ -123,7 +127,6 @@ def max_heap_creation(df, sort_by, criterion):
                 break
     return heap
 
-#approved by instructor to use this as sorting algorithm
 def min_heap_creation(df, sort_by, criterion):
     #create a min heap based on the criterion set by user (minutes, entries, etc.)
     heap = []
@@ -150,13 +153,15 @@ def min_heap_creation(df, sort_by, criterion):
                 break
     return heap
 
+# get the top value by popping and return to heap by sifting next largest to top
 def pop_max_heap(heap):
-    # get the top value by popping and return to heap by sifting next largest to top
+    #if there is no values in the heap, returns None
     if len(heap) == 0:
         return None
 
     root = heap[0]
 
+    #if there is only one value, it will just pop the one and return
     if len(heap) == 1:
         heap.pop()
         return root
@@ -189,10 +194,11 @@ def pop_max_heap(heap):
 
     return root
 
+#get the bottom value by popping and return to min heap by sifting next smallest to top
 def pop_min_heap(heap):
     if len(heap) == 0:
         return None
-    #get the bottom value by popping and return to min heap by sifting next smallest to top
+
     root = heap[0]
 
     if len(heap) == 1:
@@ -230,7 +236,7 @@ def pop_min_heap(heap):
 def top_5_songs(df, month, criterion):
     top = []
     #use a max heap to sort the songs by most entries in the dataframe
-    #remove the root (top song) 5 times and then songs in top list are the top 10 songs
+    #remove the root (top song) 5 times and then songs in top list are the top 5 songs
 
     # filter by month
     df_month = df[df['month'] == month]
@@ -246,6 +252,7 @@ def top_5_songs(df, month, criterion):
 
     return top
 
+#using python sorted() to get bottom songs
 def bottom_5_songs(df, month, criterion):
     bottom = []
     # filter by month
@@ -261,27 +268,27 @@ def bottom_5_songs(df, month, criterion):
     return sorted_songs[:5]
 
 def search_artist(df, artist_name, artist_dict=None):
-   #use the artist dictionary created to find artist and return values
+    artist_name_clean = artist_name.lower().strip()
+
+    #use the artist dictionary created to find artist and return values
     if artist_dict is not None:
-        artist_name = artist_name.lower().strip()
-        #if the artist is not in the dictionary, it is not in listening history so there is no data
-        if artist_name not in artist_dict:
-            return None
-        #search dictionary with artist_name as key
-        data = artist_dict[artist_name]
-        return {
-            'artist': artist_name,
-            'total_entries': data['total_entries'],
-            'total_minutes': data['total_minutes']
-        }
+        if artist_name_clean in artist_dict:
+            #search dictionary with artist_name as key
+            data = artist_dict[artist_name_clean]
+            return {
+                'artist': artist_name,
+                'total_entries': data['total_entries'],
+                'total_minutes': data['total_minutes']
+            }
     #if for some reason the artist is not in the artist_dict, use pandas filtering to find artist
     artist_df = df[df['artist'].str.lower() == artist_name.lower()]
+    #if it could not find that artist in the dataframe either, it does not exist in listening history
     if artist_df.empty:
         return None
     return{
         'artist': artist_name,
         'total_entries': len(artist_df),
-        'total_minutes': artist_df['total_minutes'].sum(),
+        'total_minutes': artist_df['minutes_played'].sum(),
     }
 
 def top_5_artist_month(df, month, criterion):
@@ -294,14 +301,16 @@ def top_5_artist_month(df, month, criterion):
     # create max heap with 'minutes'
     max_heap = max_heap_creation(df_month, sort_by='artist', criterion=criterion)
 
-    # create max heap with 'minutes'
+    # get the top 5 artists by popping the root from heap created 5 times
     for i in range(5):
         if max_heap:
             top.append(pop_max_heap(max_heap))
 
     return top
 
+#users enters two artists and wants to see who they listen to more
 def compare_artists(artist_dict, artist_name1, artist_name2):
+    #uses the dictionary to search for each artist and get minutes and entries
     result1 = artist_dict.get(artist_name1.lower().strip())
     result2 = artist_dict.get(artist_name2.lower().strip())
 
@@ -336,19 +345,26 @@ def compare_artists(artist_dict, artist_name1, artist_name2):
                f"{artist_name1} has more total entries ({artist1_entries}).\n"
                f"{artist_name2} has more total minutes ({artist2_minutes:.2f}).")
     else:
+        #fall back if something went wrong
         return(f"Results are tied or very close.\n"
                f"{artist_name1}: {artist1_minutes:.2f} total minutes, {artist1_entries} total entries.\n"
                f"{artist_name2}: {artist2_minutes:.2f} total minutes, {artist2_entries} total entries.")
 
+#if the user just wants to see their overall year at a glance they can do this and it will output summary
 def overall_summary(df):
     if df.empty:
         return "No data found."
+    #gets the total number of songs/podcasts/audiobooks they listened to (including repeats)
     total_entries = len(df)
+    #gets total minutes listened
     total_minutes = df['minutes_played'].sum()
 
+    #gets unique number of artists
     total_artists = len(df['artist'].unique())
+    #gets unique number of songs
     total_tracks = len(df['track'].unique())
 
+    #gets the top artist and track from the songs listened
     songs_df = df[df['track'].notna()]
     if not songs_df.empty:
         top_artist = songs_df['artist'].value_counts().idxmax()
@@ -361,6 +377,7 @@ def overall_summary(df):
         top_track = 'N/A'
         top_track_count = 'N/A'
 
+    #gets the top podcast from podcasts listened
     podcast_df = df[df['episode_show_name'].notna()]
     if not podcast_df.empty:
         top_podcast = podcast_df['episode_show_name'].value_counts().idxmax()
@@ -369,10 +386,11 @@ def overall_summary(df):
         top_podcast = 'N/A'
         top_podcast_count = 'N/A'
 
+    #prints the summary data nicely
     return(
         f"Summary of your listening history for this year:\n"
         f"---------------------------------------------------\n"
-        f"Total number of songs/podcasts: {total_entries}\n"
+        f"Total number of songs/podcasts/audiobooks (repeats included): {total_entries}\n"
         f"Total minutes listened: {total_minutes}\n"
         f"Total number of unique artists: {total_artists}\n"
         f"Total number of unique songs: {total_tracks}\n"
@@ -398,9 +416,10 @@ def main_menu(df):
 
         option = input("Enter an option (1-7): ")
 
-        #
+        #if they want to find top 5 songs
         if option == "1":
             while True:
+                #gets users input for month and sorting criterion
                 user_sort = input("Do you want to sort by entries or minutes listened? Enter either 'entries' or 'minutes': ")
                 sort_method = user_sort.lower().strip()
                 if sort_method not in ['entries', 'minutes']:
@@ -409,17 +428,20 @@ def main_menu(df):
                 user_month = input("Enter the full month name (e.g., January): ")
                 month = user_month.lower().strip()
                 try:
+                    #converts month to number if valid month inputted
                     num_month = get_month(month)
                     break
                 except Exception:
                     print("Invalid month. Please try again.")
             print(f"\nFinding top 5 songs for {user_month}...")
+            #uses functions created to get results and print them nicely
             results = top_5_songs(df, month=num_month, criterion=sort_method)
             print_clean(results, f"Top 5 songs in {user_month} by {sort_method}:")
 
-
+        #finding bottom 5 songs
         elif option == "2":
             while True:
+                #getting user inputs - month and sort criterion
                 user_sort = input(
                     "Do you want to sort by entries or minutes listened? Enter either 'entries' or 'minutes': ")
                 sort_method = user_sort.lower().strip()
@@ -437,21 +459,26 @@ def main_menu(df):
             results = bottom_5_songs(df, month=num_month, criterion=sort_method)
             print_clean(results, "Bottom 5 songs:")
 
-
+        #finding artist results
         elif option == "3":
+            #get user artist
             artist = input("Enter the full artist name (e.g., Mac Miller): ")
+            #searches for artist using search function
             result = search_artist(df, artist, artist_dict)
             print(f"\nSearching for {artist}...\n")
             if result is None:
+                #catches incorrect inputs from users
                 print("Artist not found. Please try again.")
             else:
+                #prints output nicely
                 print(f"{artist} found! Summary:")
                 print(f"Total Plays: {result['total_entries']}")
                 print(f"Total Minutes: {result['total_minutes']:.2f}")
 
-
+        #gets top 5 artists
         elif option == "4":
             while True:
+                #user input gathering for month and sort criterion
                 user_sort = input(
                     "Do you want to sort by entries or minutes listened? Enter either 'entries' or 'minutes': ")
                 sort_method = user_sort.lower().strip()
@@ -461,42 +488,49 @@ def main_menu(df):
                 user_month = input("Enter the full month name (e.g., January): ")
                 month = user_month.lower().strip()
                 try:
+                    #converts month to number if correctly spelled month
                     num_month = get_month(month)
                     break
                 except Exception:
                     print("Invalid month. Please try again.")
             print(f"\nFinding top 5 artists for {user_month}...")
+            #uses functions to get top 5 and print results nicely
             results = top_5_artist_month(df, month=num_month, criterion=sort_method)
             print_clean(results, f"Top 5 artists in {user_month}:")
 
-
+        #compares two artists
         elif option == "5":
             while True:
+                #get two artists names from user
                 first_artist = input("Enter the first artist's full name (e.g., Mac Miller): ")
                 second_artist = input("Enter the second artist's full name (e.g., Mac Miller): ")
                 try:
+                    #gets the results via compare_artists function
                     result = compare_artists(artist_dict, first_artist, second_artist)
                     print(result)
                     break
                 except Exception:
+                    #catches errors from user input incase the function did not catch it
                     print(f"{first_artist} or {second_artist} or both were not found. Please try again.")
                     continue
             print()
 
-
+        #prints overall summary
         elif option == "6":
             result = overall_summary(df)
             print(result)
 
-
+        #ends While loop and program
         elif option == "7":
             print("\nExiting...")
             break
 
+        #catches incorrect numbers from user
         else:
             print("\nInvalid input. Please try again.")
             continue
 
+        #lets the user decide when to print the menu and continue program
         if option in ["1", "2", "3", "4", "5", "6"]:
             input("\nPress Enter to continue...")
 
@@ -505,7 +539,7 @@ if __name__ == '__main__':
     files = [
         'Streaming_History_Audio_2025.json',
         'Streaming_History_Audio_2025_1.json',
-        'Streaming_History_Audio_2025_2.json',]
+        'Streaming_History_Audio_2025_2.json']
 
     # 1. load the data
     print("Loading 2025 data...")
