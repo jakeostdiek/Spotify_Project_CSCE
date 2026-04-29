@@ -537,14 +537,19 @@ def main_menu(df):
 
 if __name__ == '__main__':
     files = [
-        'Streaming_History_Audio_2025.json',
-        'Streaming_History_Audio_2025_1.json',
-        'Streaming_History_Audio_2025_2.json']
+        'jake_2025_history.json',
+        'jake_2025_history_2.json',
+        'jake_2025_history_3.json']
 
     # 1. load the data
     print("Loading 2025 data...")
-    spotify_df = load_spotify_data(files)
-    artist_dict = build_artist_dict(spotify_df)
+    try:
+        spotify_df = load_spotify_data(files)
+        artist_dict = build_artist_dict(spotify_df)
 
-    # 2. open menu
-    main_menu(spotify_df)
+        # 2. open menu
+        main_menu(spotify_df)
+    except:
+        print("\nError Loading Spotify data. Please try again.")
+
+
