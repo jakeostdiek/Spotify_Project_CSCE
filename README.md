@@ -1,4 +1,4 @@
-# Spotify Spotlight: CSCE 311 Final Project
+# Spotify Spotlight: CSCE 311 Final Project - Jake Ostdiek & Cassie Nesheim
 
 ## Project Overview:
 This program gives users a way to look into their Spotify listening history in a more interactive and personalized way than ever before.
